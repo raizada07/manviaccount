@@ -307,7 +307,17 @@
         import { getFirestore, collection, addDoc, onSnapshot, query, doc, getDoc, setDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- CONFIGURATION ---
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID" };
+       // --- CONFIGURATION ---
+        // UPDATED: Your Firebase config is now here
+        const firebaseConfig = {
+          apiKey: "AIzaSyBukuO5ziuz_KzSYbDqULpUUAEHROU94zY",
+          authDomain: "manviaccount.firebaseapp.com",
+          projectId: "manviaccount",
+          storageBucket: "manviaccount.firebasestorage.app",
+          messagingSenderId: "1015601715009",
+          appId: "1:1015601715009:web:7d0f582b8d7463ff0ff3c0",
+          measurementId: "G-5RSHCQ92C3"
+        };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 

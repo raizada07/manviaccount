@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Account Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        .main-content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Hide sections by default */
+        .page-section {
+            display: none;
+        }
+        .page-section.active {
+            display: block;
+        }
+        .modal {
+            display: none;
+        }
+        .modal.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <div id="loading-spinner" class="fixed inset-0 z-50 flex items-center justify-center bg-white">
+        <div class="w-16 h-16 border-4 border-t-blue-500 border-gray-200 rounded-full animate-spin"></div>
+    </div>
+
+    <div class="flex h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <aside class="sidebar fixed inset-y-0 left-0 z-30 w-64 bg-gray-800 text-white transform -translate-x-full md:relative md:translate-x-0">
+            <div class="px-6 py-4">
+                <h2 class="text-2xl font-semibold text-center">Account Panel</h2>
+                <div id="user-info" class="mt-4 text-center text-sm text-gray-400"></div>
+            </div>
+            <nav class="mt-8">
+                <a href="#dashboard" class="nav-link flex items-center px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-tachometer-alt w-6"></i><span class="ml-4">Dashboard</span>
+                </a>
+                <a href="#branches" class="nav-link flex items-center px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-code-branch w-6"></i><span class="ml-4">Branches</span>
+                </a>
+                <a href="#sales" class="nav-link flex items-center px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-chart-line w-6"></i><span class="ml-4">Sales</span>
+                </a>
+                <a href="#expenses" class="nav-link flex items-center px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-wallet w-6"></i><span class="ml-4">Expenses</span>
+                </a>
+                <a href="#staff" class="nav-link flex items-center px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-users w-6"></i><span class="ml-4">Staff Salary</span>
+                </a>
+                <a href="#vendors" class="nav-link flex items-center px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <i class="fas fa-truck w-6"></i><span class="ml-4">Vendors</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content flex-1 flex flex-col overflow-hidden">
+            <header class="flex items-center justify-between p-4 bg-white border-b">
+                <button id="sidebar-toggle" class="text-gray-500 focus:outline-none md:hidden">
+                    <i class="fas fa-bars fa-lg"></i>
+                </button>
+                <h1 class="text-2xl font-semibold text-gray-700" id="page-title">Dashboard</h1>
+            </header>
+
+            <div class="flex-1 p-6 overflow-y-auto">
+
+                <!-- Dashboard Section -->
+                <section id="dashboard-section" class="page-section active">
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="p-6 bg-white rounded-lg shadow-md">
+                            <h3 class="text-lg font-medium text-gray-600">Total Sales</h3>
+                            <p class="mt-2 text-3xl font-bold text-blue-600" id="total-sales">₹0</p>
+                        </div>
+                         <div class="p-6 bg-white rounded-lg shadow-md">
+                            <h3 class="text-lg font-medium text-gray-600">Total Expenses</h3>
+                            <p class="mt-2 text-3xl font-bold text-red-600" id="total-expenses">₹0</p>
+                        </div>
+                        <div class="p-6 bg-white rounded-lg shadow-md">
+                            <h3 class="text-lg font-medium text-gray-600">Total Staff</h3>
+                            <p class="mt-2 text-3xl font-bold text-green-600" id="total-staff">0</p>
+                        </div>
+                        <div class="p-6 bg-white rounded-lg shadow-md">
+                            <h3 class="text-lg font-medium text-gray-600">Total Vendors</h3>
+                            <p class="mt-2 text-3xl font-bold text-purple-600" id="total-vendors">0</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Branches Section -->
+                <section id="branches-section" class="page-section">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Add New Branch</h2>
+                        <form id="add-branch-form" class="space-y-4">
+                            <input type="text" id="branch-name" placeholder="Branch Ka Naam" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <input type="text" id="branch-location" placeholder="Location" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <button type="submit" class="w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">Add Branch</button>
+                        </form>
+                    </div>
+                    <div class="mt-6 bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Branch List</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white">
+                                <thead class="bg-gray-200">
+                                    <tr>
+                                        <th class="py-2 px-4 text-left">Branch Naam</th>
+                                        <th class="py-2 px-4 text-left">Location</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="branch-list">
+                                    <!-- Branch data will be inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Sales Section -->
+                <section id="sales-section" class="page-section">
+                     <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Add New Sale</h2>
+                        <form id="add-sale-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="number" id="sale-amount" placeholder="Amount" class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <input type="date" id="sale-date" class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <select id="sale-branch" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="">Select Branch</option>
+                            </select>
+                            <input type="text" id="sale-description" placeholder="Description" class="md:col-span-2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button type="submit" class="md:col-span-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">Add Sale</button>
+                        </form>
+                    </div>
+                    <div class="mt-6 bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Sales History</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white">
+                                <thead class="bg-gray-200">
+                                    <tr>
+                                        <th class="py-2 px-4 text-left">Date</th>
+                                        <th class="py-2 px-4 text-left">Branch</th>
+                                        <th class="py-2 px-4 text-left">Amount</th>
+                                        <th class="py-2 px-4 text-left">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sales-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Expenses Section -->
+                <section id="expenses-section" class="page-section">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Add New Expense</h2>
+                        <form id="add-expense-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="number" id="expense-amount" placeholder="Amount" class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <input type="date" id="expense-date" class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <select id="expense-branch" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="">Select Branch</option>
+                            </select>
+                            <input type="text" id="expense-category" placeholder="Category (e.g., Rent, Bills)" class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                             <input type="text" id="expense-description" placeholder="Description" class="md:col-span-2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button type="submit" class="md:col-span-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">Add Expense</button>
+                        </form>
+                    </div>
+                    <div class="mt-6 bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Expense History</h2>
+                         <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white">
+                                <thead class="bg-gray-200">
+                                    <tr>
+                                        <th class="py-2 px-4 text-left">Date</th>
+                                        <th class="py-2 px-4 text-left">Branch</th>
+                                        <th class="py-2 px-4 text-left">Category</th>
+                                        <th class="py-2 px-4 text-left">Amount</th>
+                                        <th class="py-2 px-4 text-left">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expenses-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Staff Section -->
+                <section id="staff-section" class="page-section">
+                     <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Add New Staff</h2>
+                        <form id="add-staff-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" id="staff-name" placeholder="Staff Ka Naam" class="px-4 py-2 border rounded-lg" required>
+                            <input type="text" id="staff-role" placeholder="Role/Position" class="px-4 py-2 border rounded-lg" required>
+                            <input type="number" id="staff-salary" placeholder="Monthly Salary" class="px-4 py-2 border rounded-lg" required>
+                            <select id="staff-branch" class="w-full px-4 py-2 border rounded-lg" required>
+                                <option value="">Select Branch</option>
+                            </select>
+                            <button type="submit" class="md:col-span-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">Add Staff</button>
+                        </form>
+                    </div>
+                     <div class="mt-6 bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Staff List</h2>
+                         <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white">
+                                <thead class="bg-gray-200">
+                                    <tr>
+                                        <th class="py-2 px-4 text-left">Naam</th>
+                                        <th class="py-2 px-4 text-left">Role</th>
+                                        <th class="py-2 px-4 text-left">Branch</th>
+                                        <th class="py-2 px-4 text-left">Salary</th>
+                                        <th class="py-2 px-4 text-left">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="staff-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Vendors Section -->
+                <section id="vendors-section" class="page-section">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Add New Vendor</h2>
+                        <form id="add-vendor-form" class="space-y-4">
+                            <input type="text" id="vendor-name" placeholder="Vendor Ka Naam" class="w-full px-4 py-2 border rounded-lg" required>
+                            <input type="text" id="vendor-category" placeholder="Category (e.g., Raw Material)" class="w-full px-4 py-2 border rounded-lg">
+                            <input type="text" id="vendor-contact" placeholder="Contact Info" class="w-full px-4 py-2 border rounded-lg">
+                            <button type="submit" class="w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">Add Vendor</button>
+                        </form>
+                    </div>
+                    <div class="mt-6 bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Vendor List</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white">
+                                <thead class="bg-gray-200">
+                                    <tr>
+                                        <th class="py-2 px-4 text-left">Naam</th>
+                                        <th class="py-2 px-4 text-left">Category</th>
+                                        <th class="py-2 px-4 text-left">Contact</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vendor-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Salary Payment -->
+    <div id="salary-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-40 items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 class="text-xl font-semibold mb-4">Pay Salary</h2>
+            <form id="pay-salary-form">
+                <input type="hidden" id="modal-staff-id">
+                <div class="mb-4">
+                    <label class="block text-gray-700">Staff Name</label>
+                    <input type="text" id="modal-staff-name" class="w-full px-4 py-2 border rounded-lg bg-gray-100" readonly>
+                </div>
+                <div class="mb-4">
+                     <label class="block text-gray-700">Amount</label>
+                    <input type="number" id="modal-salary-amount" placeholder="Amount" class="w-full px-4 py-2 border rounded-lg" required>
+                </div>
+                 <div class="mb-4">
+                     <label class="block text-gray-700">Payment Date</label>
+                    <input type="date" id="modal-payment-date" class="w-full px-4 py-2 border rounded-lg" required>
+                </div>
+                 <div class="flex justify-end space-x-4">
+                    <button type="button" id="close-modal-btn" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">Confirm Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, getDoc, setDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- CONFIGURATION ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID" };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // --- FIREBASE INITIALIZATION ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let userId = null;
+        let branchesUnsubscribe = null;
+        let salesUnsubscribe = null;
+        let expensesUnsubscribe = null;
+        let staffUnsubscribe = null;
+        let vendorsUnsubscribe = null;
+
+        // --- DOM ELEMENTS ---
+        const pageTitle = document.getElementById('page-title');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('.page-section');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        
+        // --- AUTHENTICATION ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                document.getElementById('user-info').textContent = `User ID: ${userId.substring(0, 8)}...`;
+                setupRealtimeListeners();
+                loadingSpinner.style.display = 'none';
+                
+            } else {
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Authentication failed: ", error);
+                    loadingSpinner.innerHTML = "Authentication Failed. Please refresh.";
+                }
+            }
+        });
+
+        // --- NAVIGATION ---
+        function showSection(hash) {
+            const targetId = hash.substring(1) + '-section';
+            const targetTitle = hash.charAt(1).toUpperCase() + hash.slice(2);
+            
+            sections.forEach(section => {
+                section.classList.toggle('active', section.id === targetId);
+            });
+            
+            pageTitle.textContent = targetTitle;
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const hash = new URL(link.href).hash;
+                window.location.hash = hash;
+            });
+        });
+
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash || '#dashboard';
+            showSection(hash);
+        });
+        
+        // Initial page load
+        showSection(window.location.hash || '#dashboard');
+
+
+        // --- REALTIME LISTENERS ---
+        function setupRealtimeListeners() {
+            if (!userId) return;
+
+            // Unsubscribe from previous listeners if they exist
+            if (branchesUnsubscribe) branchesUnsubscribe();
+            if (salesUnsubscribe) salesUnsubscribe();
+            if (expensesUnsubscribe) expensesUnsubscribe();
+            if (staffUnsubscribe) staffUnsubscribe();
+            if (vendorsUnsubscribe) vendorsUnsubscribe();
+            
+            const basePath = `artifacts/${appId}/users/${userId}`;
+
+            // Branches Listener
+            const branchesQuery = query(collection(db, `${basePath}/branches`));
+            branchesUnsubscribe = onSnapshot(branchesQuery, (snapshot) => {
+                const branchList = document.getElementById('branch-list');
+                const branchSelects = document.querySelectorAll('#sale-branch, #expense-branch, #staff-branch');
+                branchList.innerHTML = '';
+                branchSelects.forEach(select => {
+                    select.innerHTML = '<option value="">Select Branch</option>';
+                });
+
+                snapshot.forEach(doc => {
+                    const branch = doc.data();
+                    const row = `<tr>
+                        <td class="py-2 px-4 border-b">${branch.name}</td>
+                        <td class="py-2 px-4 border-b">${branch.location}</td>
+                    </tr>`;
+                    branchList.innerHTML += row;
+
+                    branchSelects.forEach(select => {
+                         const option = `<option value="${doc.id}" data-name="${branch.name}">${branch.name}</option>`;
+                         select.innerHTML += option;
+                    });
+                });
+            });
+            
+            // Sales Listener
+            const salesQuery = query(collection(db, `${basePath}/sales`));
+            salesUnsubscribe = onSnapshot(salesQuery, (snapshot) => {
+                const salesList = document.getElementById('sales-list');
+                salesList.innerHTML = '';
+                let totalSales = 0;
+                snapshot.forEach(doc => {
+                    const sale = doc.data();
+                    totalSales += Number(sale.amount);
+                     const row = `<tr>
+                        <td class="py-2 px-4 border-b">${sale.date}</td>
+                        <td class="py-2 px-4 border-b">${sale.branchName}</td>
+                        <td class="py-2 px-4 border-b">₹${sale.amount}</td>
+                        <td class="py-2 px-4 border-b">${sale.description}</td>
+                    </tr>`;
+                    salesList.innerHTML += row;
+                });
+                document.getElementById('total-sales').textContent = `₹${totalSales.toLocaleString('en-IN')}`;
+            });
+
+            // Expenses Listener
+            const expensesQuery = query(collection(db, `${basePath}/expenses`));
+            expensesUnsubscribe = onSnapshot(expensesQuery, (snapshot) => {
+                const expensesList = document.getElementById('expenses-list');
+                expensesList.innerHTML = '';
+                let totalExpenses = 0;
+                snapshot.forEach(doc => {
+                    const expense = doc.data();
+                    totalExpenses += Number(expense.amount);
+                    const row = `<tr>
+                        <td class="py-2 px-4 border-b">${expense.date}</td>
+                        <td class="py-2 px-4 border-b">${expense.branchName}</td>
+                        <td class="py-2 px-4 border-b">${expense.category}</td>
+                        <td class="py-2 px-4 border-b">₹${expense.amount}</td>
+                        <td class="py-2 px-4 border-b">${expense.description}</td>
+                    </tr>`;
+                    expensesList.innerHTML += row;
+                });
+                 document.getElementById('total-expenses').textContent = `₹${totalExpenses.toLocaleString('en-IN')}`;
+            });
+
+            // Staff Listener
+            const staffQuery = query(collection(db, `${basePath}/staff`));
+            staffUnsubscribe = onSnapshot(staffQuery, (snapshot) => {
+                const staffList = document.getElementById('staff-list');
+                staffList.innerHTML = '';
+                document.getElementById('total-staff').textContent = snapshot.size;
+                snapshot.forEach(doc => {
+                    const staff = doc.data();
+                     const row = `<tr>
+                        <td class="py-2 px-4 border-b">${staff.name}</td>
+                        <td class="py-2 px-4 border-b">${staff.role}</td>
+                        <td class="py-2 px-4 border-b">${staff.branchName}</td>
+                        <td class="py-2 px-4 border-b">₹${staff.salary}</td>
+                        <td class="py-2 px-4 border-b">
+                          <button class="pay-salary-btn text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-md" data-id="${doc.id}" data-name="${staff.name}" data-salary="${staff.salary}">Pay</button>
+                        </td>
+                    </tr>`;
+                    staffList.innerHTML += row;
+                });
+            });
+
+            // Vendors Listener
+             const vendorsQuery = query(collection(db, `${basePath}/vendors`));
+             vendorsUnsubscribe = onSnapshot(vendorsQuery, (snapshot) => {
+                const vendorList = document.getElementById('vendor-list');
+                vendorList.innerHTML = '';
+                document.getElementById('total-vendors').textContent = snapshot.size;
+                snapshot.forEach(doc => {
+                    const vendor = doc.data();
+                    const row = `<tr>
+                        <td class="py-2 px-4 border-b">${vendor.name}</td>
+                        <td class="py-2 px-4 border-b">${vendor.category}</td>
+                        <td class="py-2 px-4 border-b">${vendor.contact}</td>
+                    </tr>`;
+                    vendorList.innerHTML += row;
+                });
+             });
+
+        }
+
+
+        // --- FORM SUBMISSIONS ---
+        const getBasePath = () => `artifacts/${appId}/users/${userId}`;
+
+        // Add Branch
+        document.getElementById('add-branch-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('branch-name').value;
+            const location = document.getElementById('branch-location').value;
+            try {
+                await addDoc(collection(db, `${getBasePath()}/branches`), { name, location });
+                e.target.reset();
+            } catch (error) {
+                console.error("Error adding branch: ", error);
+            }
+        });
+
+        // Add Sale
+        document.getElementById('add-sale-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const branchSelect = document.getElementById('sale-branch');
+            const selectedOption = branchSelect.options[branchSelect.selectedIndex];
+            const saleData = {
+                amount: document.getElementById('sale-amount').value,
+                date: document.getElementById('sale-date').value,
+                branchId: branchSelect.value,
+                branchName: selectedOption.dataset.name,
+                description: document.getElementById('sale-description').value,
+            };
+            try {
+                await addDoc(collection(db, `${getBasePath()}/sales`), saleData);
+                e.target.reset();
+            } catch (error) {
+                console.error("Error adding sale: ", error);
+            }
+        });
+
+        // Add Expense
+         document.getElementById('add-expense-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const branchSelect = document.getElementById('expense-branch');
+            const selectedOption = branchSelect.options[branchSelect.selectedIndex];
+            const expenseData = {
+                amount: document.getElementById('expense-amount').value,
+                date: document.getElementById('expense-date').value,
+                branchId: branchSelect.value,
+                branchName: selectedOption.dataset.name,
+                category: document.getElementById('expense-category').value,
+                description: document.getElementById('expense-description').value,
+            };
+            try {
+                await addDoc(collection(db, `${getBasePath()}/expenses`), expenseData);
+                e.target.reset();
+            } catch (error) {
+                console.error("Error adding expense: ", error);
+            }
+        });
+
+        // Add Staff
+        document.getElementById('add-staff-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const branchSelect = document.getElementById('staff-branch');
+            const selectedOption = branchSelect.options[branchSelect.selectedIndex];
+            const staffData = {
+                name: document.getElementById('staff-name').value,
+                role: document.getElementById('staff-role').value,
+                salary: document.getElementById('staff-salary').value,
+                branchId: branchSelect.value,
+                branchName: selectedOption.dataset.name,
+            };
+             try {
+                await addDoc(collection(db, `${getBasePath()}/staff`), staffData);
+                e.target.reset();
+            } catch (error) {
+                console.error("Error adding staff: ", error);
+            }
+        });
+
+         // Add Vendor
+        document.getElementById('add-vendor-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const vendorData = {
+                name: document.getElementById('vendor-name').value,
+                category: document.getElementById('vendor-category').value,
+                contact: document.getElementById('vendor-contact').value,
+            };
+             try {
+                await addDoc(collection(db, `${getBasePath()}/vendors`), vendorData);
+                e.target.reset();
+            } catch (error) {
+                console.error("Error adding vendor: ", error);
+            }
+        });
+
+
+        // --- SALARY MODAL LOGIC ---
+        const salaryModal = document.getElementById('salary-modal');
+
+        document.getElementById('staff-list').addEventListener('click', (e) => {
+            if (e.target.classList.contains('pay-salary-btn')) {
+                const staffId = e.target.dataset.id;
+                const staffName = e.target.dataset.name;
+                const salaryAmount = e.target.dataset.salary;
+
+                document.getElementById('modal-staff-id').value = staffId;
+                document.getElementById('modal-staff-name').value = staffName;
+                document.getElementById('modal-salary-amount').value = salaryAmount;
+                document.getElementById('modal-payment-date').valueAsDate = new Date();
+
+                salaryModal.classList.add('active');
+            }
+        });
+
+        document.getElementById('close-modal-btn').addEventListener('click', () => {
+             salaryModal.classList.remove('active');
+        });
+        
+        document.getElementById('pay-salary-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const paymentData = {
+                staffId: document.getElementById('modal-staff-id').value,
+                staffName: document.getElementById('modal-staff-name').value,
+                amount: document.getElementById('modal-salary-amount').value,
+                date: document.getElementById('modal-payment-date').value,
+                category: 'Salary',
+                description: `Salary for ${document.getElementById('modal-staff-name').value}`,
+                // We need branch info. We'll add this as an expense.
+                // For simplicity, we assume salary is a general expense. A better way would be to fetch staff's branch.
+                branchName: 'General',
+            };
+            try {
+                // Add to expenses collection
+                await addDoc(collection(db, `${getBasePath()}/expenses`), paymentData);
+                salaryModal.classList.remove('active');
+                e.target.reset();
+            } catch (error) {
+                 console.error("Error processing salary payment: ", error);
+            }
+        });
+
+
+        // --- RESPONSIVE SIDEBAR TOGGLE ---
+        const sidebar = document.querySelector('.sidebar');
+        document.getElementById('sidebar-toggle').addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+    </script>
+</body>
+</html>
